@@ -1,0 +1,50 @@
+[
+  {
+    "id": "mlbfwa6l9gasaljwwkc",
+    "id_deudor": "mlbfsb7im9r1bd7way",
+    "nombre_deudor": "Samuel",
+    "monto_pagado": 15,
+    "fecha": "2026-02-06T22:11:07.533Z",
+    "metodo_pago": "Efectivo"
+  },
+  {
+    "id": "mlbfwi8q08f3h96seou",
+    "id_deudor": "mlbfsb7im9r1bd7way",
+    "nombre_deudor": "Samuel",
+    "monto_pagado": 1,
+    "fecha": "2026-02-06T22:11:17.978Z",
+    "metodo_pago": null
+  },
+  {
+    "id": "mlbfxga1hpw6h3i0nqe",
+    "id_deudor": "mlbfsb7im9r1bd7way",
+    "nombre_deudor": "Samuel",
+    "monto_pagado": 0.5,
+    "fecha": "2026-02-06T22:12:02.089Z",
+    "metodo_pago": "Efectivo"
+  },
+  {
+    "id": "mlbfxsv6cokpm9k7cut",
+    "id_deudor": "mlbfsb7im9r1bd7way",
+    "nombre_deudor": "Samuel",
+    "monto_pagado": 0.5,
+    "fecha": "2026-02-06T22:12:18.402Z",
+    "metodo_pago": "Efectivo"
+  },
+  {
+    "id": "mlbfy1ashyighwrwdp",
+    "id_deudor": "mlbfsb7im9r1bd7way",
+    "nombre_deudor": "Samuel",
+    "monto_pagado": 1,
+    "fecha": "2026-02-06T22:12:29.332Z",
+    "metodo_pago": "Efectivo"
+  },
+  {
+    "id": "mlbg15w4wud3bfheoq",
+    "id_deudor": "mlbfsb7im9r1bd7way",
+    "nombre_deudor": "Samuel",
+    "monto_pagado": 20,
+    "fecha": "2026-02-06T22:14:55.252Z",
+    "metodo_pago": "Efectivo"
+  }
+]

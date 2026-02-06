@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS - Registrar pago</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <nav class="bg-emerald-700 text-white shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <span id="nav-saludo" class="font-bold text-xl">Buenos días</span>
+      <div class="flex gap-4 items-center">
+        <a href="index.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Dashboard</a>
+        <a href="ventas.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Ventas</a>
+        <a href="inventario.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Inventario</a>
+        <a href="deudores.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Deudores</a>
+        <a href="pagos.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Pagos</a>
+        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 px-3 py-1 rounded text-sm opacity-90">Cerrar sesión</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-slate-800 mb-6">Registrar pago</h1>
+
+    <form id="form-pago" class="bg-white rounded-xl shadow border border-slate-200 p-6 space-y-6">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Deudor</label>
+        <select name="id_deudor" required class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+          <option value="">Seleccionar deudor...</option>
+        </select>
+        <p id="deuda-actual" class="mt-1 text-sm text-slate-600"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Monto a pagar</label>
+        <input type="number" name="monto_pagado" step="0.01" min="0.01" required placeholder="0.00"
+          class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Método de pago</label>
+        <select name="metodo_pago" class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+          <option value="">Seleccionar...</option>
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia">Transferencia</option>
+        </select>
+      </div>
+      <div class="flex gap-4">
+        <button type="submit" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium">
+          Registrar pago
+        </button>
+        <a href="index.html" class="bg-slate-200 text-slate-700 px-6 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</a>
+      </div>
+    </form>
+
+    <div id="mensaje" class="mt-4 hidden rounded-lg p-4"></div>
+
+    <div class="mt-8 bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <h2 class="px-6 py-4 border-b border-slate-200 text-lg font-semibold text-slate-800">Historial de pagos</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 text-slate-600 text-sm">
+            <tr>
+              <th class="px-6 py-3 font-medium">Deudor</th>
+              <th class="px-6 py-3 font-medium">Monto</th>
+              <th class="px-6 py-3 font-medium">Fecha</th>
+              <th class="px-6 py-3 font-medium">Método</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-pagos" class="divide-y divide-slate-100">
+            <tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (function () {
+      if (!requireAuth()) return;
+      document.getElementById('nav-saludo').textContent = getSaludo();
+      document.getElementById('btn-cerrar-sesion').onclick = function (e) { e.preventDefault(); cerrarSesion(); };
+      const form = document.getElementById('form-pago');
+      const selectDeudor = form.id_deudor;
+      const deudaActual = document.getElementById('deuda-actual');
+      const mensajeEl = document.getElementById('mensaje');
+      const tablaPagos = document.getElementById('tabla-pagos');
+
+      const params = new URLSearchParams(location.search);
+      const deudorPreseleccionado = params.get('deudor');
+
+      function showMsg(text, isError) {
+        if (isError) Swal.fire({ title: 'Error', text: text, icon: 'error' });
+        else Swal.fire({ title: '¡Listo!', text: text, icon: 'success', confirmButtonColor: '#059669' });
+      }
+
+      function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+      function formatDate(iso) { if (!iso) return '-'; return new Date(iso).toLocaleDateString('es'); }
+
+      function actualizarDeuda() {
+        const id = selectDeudor.value;
+        if (!id) {
+          deudaActual.textContent = '';
+          return;
+        }
+        const opt = selectDeudor.selectedOptions[0];
+        const deuda = opt ? parseFloat(opt.dataset.deuda || 0) : 0;
+        deudaActual.textContent = 'Deuda actual: $' + deuda.toFixed(2);
+      }
+
+      function loadDeudores() {
+        api.deudores.list().then(deudores => {
+          const conDeuda = deudores.filter(d => (d.total_deuda || 0) > 0);
+          selectDeudor.innerHTML = '<option value="">Seleccionar deudor...</option>' +
+            conDeuda.map(d => `<option value="${d.id}" data-deuda="${d.total_deuda || 0}" data-nombre="${escapeHtml(d.nombre)}">${escapeHtml(d.nombre)} - $${(d.total_deuda || 0).toFixed(2)}</option>`).join('');
+          if (deudorPreseleccionado) {
+            selectDeudor.value = deudorPreseleccionado;
+          }
+          actualizarDeuda();
+        }).catch(e => {
+          selectDeudor.innerHTML = '<option value="">Error al cargar</option>';
+        });
+      }
+
+      selectDeudor.addEventListener('change', actualizarDeuda);
+
+      function loadPagos() {
+        api.pagos.list().then(pagos => {
+          if (pagos.length === 0) {
+            tablaPagos.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">No hay pagos registrados.</td></tr>';
+            return;
+          }
+          tablaPagos.innerHTML = pagos.slice().reverse().map(p => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-6 py-3 font-medium text-slate-800">${escapeHtml(p.nombre_deudor || '-')}</td>
+              <td class="px-6 py-3 text-emerald-600 font-semibold">$${(p.monto_pagado || 0).toFixed(2)}</td>
+              <td class="px-6 py-3 text-slate-600">${formatDate(p.fecha)}</td>
+              <td class="px-6 py-3 text-slate-600">${escapeHtml(p.metodo_pago || '-')}</td>
+            </tr>
+          `).join('');
+        }).catch(e => {
+          tablaPagos.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-red-600">' + escapeHtml(e.message) + '</td></tr>';
+          Swal.fire({ title: 'Error', text: e.message, icon: 'error' });
+        });
+      }
+
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const id_deudor = form.id_deudor.value;
+        const monto_pagado = parseFloat(form.monto_pagado.value);
+        const metodo_pago = form.metodo_pago.value.trim() || undefined;
+        const nombre_deudor = selectDeudor.selectedOptions[0]?.dataset.nombre;
+        if (!id_deudor || monto_pagado <= 0) {
+          showMsg('Selecciona un deudor e ingresa un monto mayor a 0.', true);
+          return;
+        }
+        try {
+          await api.pagos.create({ id_deudor, nombre_deudor, monto_pagado, metodo_pago });
+          await Swal.fire({
+            icon: 'success',
+            title: '¡Pago registrado!',
+            text: 'Se ha registrado correctamente.',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#059669',
+          });
+          location.href = 'index.html';
+        } catch (err) {
+          showMsg(err.message, true);
+        }
+      };
+
+      loadDeudores();
+      loadPagos();
+    })();
+  </script>
+</body>
+</html>

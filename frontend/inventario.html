@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS - Inventario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <nav class="bg-emerald-700 text-white shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <span id="nav-saludo" class="font-bold text-xl">Buenos días</span>
+      <div class="flex gap-4 items-center">
+        <a href="index.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Dashboard</a>
+        <a href="ventas.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Ventas</a>
+        <a href="inventario.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Inventario</a>
+        <a href="deudores.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Deudores</a>
+        <a href="pagos.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Pagos</a>
+        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 px-3 py-1 rounded text-sm opacity-90">Cerrar sesión</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <h1 class="text-2xl font-bold text-slate-800">Inventario</h1>
+      <button type="button" id="btn-nuevo" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-medium">
+        Nuevo producto
+      </button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 text-slate-600 text-sm">
+            <tr>
+              <th class="px-6 py-3 font-medium">Nombre</th>
+              <th class="px-6 py-3 font-medium">Precio unitario</th>
+              <th class="px-6 py-3 font-medium">Cantidad disponible</th>
+              <th class="px-6 py-3 font-medium">Fecha registro</th>
+              <th class="px-6 py-3 font-medium">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-inventario" class="divide-y divide-slate-100">
+            <tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal crear/editar -->
+  <div id="modal-producto" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+      <h2 id="modal-titulo" class="text-lg font-semibold text-slate-800 mb-4">Nuevo producto</h2>
+      <form id="form-producto">
+        <input type="hidden" name="id">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+            <input type="text" name="nombre" required class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Precio unitario</label>
+            <input type="number" name="precio_unitario" step="0.01" min="0" required class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Cantidad disponible</label>
+            <input type="number" name="cantidad_disponible" min="0" required class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-medium">Guardar</button>
+          <button type="button" id="btn-cerrar-modal" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (function () {
+      if (!requireAuth()) return;
+      document.getElementById('nav-saludo').textContent = getSaludo();
+      document.getElementById('btn-cerrar-sesion').onclick = function (e) { e.preventDefault(); cerrarSesion(); };
+      const tabla = document.getElementById('tabla-inventario');
+      const modal = document.getElementById('modal-producto');
+      const form = document.getElementById('form-producto');
+      const modalTitulo = document.getElementById('modal-titulo');
+      const btnNuevo = document.getElementById('btn-nuevo');
+      const btnCerrar = document.getElementById('btn-cerrar-modal');
+
+      function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+      function formatDate(iso) { if (!iso) return '-'; return new Date(iso).toLocaleDateString('es'); }
+
+      function load() {
+        api.inventario.list().then(productos => {
+          if (productos.length === 0) {
+            tabla.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">No hay productos. Crea uno nuevo.</td></tr>';
+            return;
+          }
+          tabla.innerHTML = productos.map(p => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-6 py-3 font-medium text-slate-800">${escapeHtml(p.nombre)}</td>
+              <td class="px-6 py-3 text-slate-600">$${(p.precio_unitario || 0).toFixed(2)}</td>
+              <td class="px-6 py-3 text-slate-600">${p.cantidad_disponible ?? 0}</td>
+              <td class="px-6 py-3 text-slate-600">${formatDate(p.fecha_registro)}</td>
+              <td class="px-6 py-3">
+                <button type="button" class="editar text-emerald-600 hover:underline font-medium mr-2" data-id="${p.id}">Editar</button>
+                <button type="button" class="eliminar text-red-600 hover:underline font-medium" data-id="${p.id}">Eliminar</button>
+              </td>
+            </tr>
+          `).join('');
+          tabla.querySelectorAll('.editar').forEach(btn => {
+            btn.onclick = () => openModal(btn.dataset.id);
+          });
+          tabla.querySelectorAll('.eliminar').forEach(btn => {
+            btn.onclick = () => {
+              Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'El producto se eliminará permanentemente.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  api.inventario.delete(btn.dataset.id)
+                    .then(() => {
+                      Swal.fire({ title: 'Eliminado', text: 'El producto se ha eliminado correctamente.', icon: 'success', confirmButtonColor: '#059669' });
+                      load();
+                    })
+                    .catch((err) => Swal.fire({ title: 'Error', text: err.message, icon: 'error' }));
+                }
+              });
+            };
+          });
+        }).catch((e) => {
+          tabla.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-red-600">' + escapeHtml(e.message) + '</td></tr>';
+          Swal.fire({ title: 'Error', text: e.message, icon: 'error' });
+        });
+      }
+
+      function openModal(id) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (id) {
+          modalTitulo.textContent = 'Editar producto';
+          api.inventario.get(id).then(p => {
+            form.id.value = p.id;
+            form.nombre.value = p.nombre;
+            form.precio_unitario.value = p.precio_unitario;
+            form.cantidad_disponible.value = p.cantidad_disponible;
+          });
+        } else {
+          modalTitulo.textContent = 'Nuevo producto';
+          form.reset();
+          form.id.value = '';
+        }
+      }
+
+      btnNuevo.onclick = () => openModal(null);
+      btnCerrar.onclick = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      };
+      modal.onclick = (e) => { if (e.target === modal) btnCerrar.click(); };
+
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const id = form.id.value;
+        const body = {
+          nombre: form.nombre.value.trim(),
+          precio_unitario: parseFloat(form.precio_unitario.value),
+          cantidad_disponible: parseInt(form.cantidad_disponible.value, 10),
+        };
+        try {
+          if (id) await api.inventario.update(id, body);
+          else await api.inventario.create(body);
+          btnCerrar.click();
+          load();
+          Swal.fire({ title: id ? 'Actualizado' : 'Creado', text: id ? 'El producto se ha actualizado correctamente.' : 'El producto se ha creado correctamente.', icon: 'success', confirmButtonColor: '#059669' });
+        } catch (err) {
+          Swal.fire({ title: 'Error', text: err.message, icon: 'error' });
+        }
+      };
+
+      load();
+    })();
+  </script>
+</body>
+</html>

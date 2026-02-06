@@ -1,0 +1,73 @@
+[
+  {
+    "id": "mlbfrxtorqcu9lwdyek",
+    "tipo_venta": "contado",
+    "nombre_cliente": "Samuel",
+    "productos": [
+      {
+        "id_producto": "mlbfrbaatrepzdx4g2",
+        "nombre": "Chocolate",
+        "cantidad": 1,
+        "precio_unitario": 9,
+        "subtotal": 9
+      }
+    ],
+    "total": 9,
+    "fecha": "2026-02-06T22:07:44.892Z"
+  },
+  {
+    "id": "mlbfsb7hirmbaditg5b",
+    "tipo_venta": "fiado",
+    "nombre_cliente": "Samuel",
+    "productos": [
+      {
+        "id_producto": "mlbfrbaatrepzdx4g2",
+        "nombre": "Chocolate",
+        "cantidad": 2,
+        "precio_unitario": 9,
+        "subtotal": 18
+      }
+    ],
+    "total": 18,
+    "fecha": "2026-02-06T22:08:02.237Z"
+  },
+  {
+    "id": "mlbg0hkwsp42ww2073d",
+    "tipo_venta": "contado",
+    "nombre_cliente": "samuel",
+    "productos": [
+      {
+        "id_producto": "mlbfrbaatrepzdx4g2",
+        "nombre": "Chocolate",
+        "cantidad": 2,
+        "precio_unitario": 10,
+        "subtotal": 20
+      },
+      {
+        "id_producto": "mlbfrbaatrepzdx4g2",
+        "nombre": "Chocolate",
+        "cantidad": 1,
+        "precio_unitario": 10,
+        "subtotal": 10
+      }
+    ],
+    "total": 30,
+    "fecha": "2026-02-06T22:14:23.744Z"
+  },
+  {
+    "id": "mlbg0uly80jr36wrct9",
+    "tipo_venta": "fiado",
+    "nombre_cliente": "Samuel",
+    "productos": [
+      {
+        "id_producto": "mlbfrbaatrepzdx4g2",
+        "nombre": "Chocolate",
+        "cantidad": 4,
+        "precio_unitario": 10,
+        "subtotal": 40
+      }
+    ],
+    "total": 40,
+    "fecha": "2026-02-06T22:14:40.630Z"
+  }
+]

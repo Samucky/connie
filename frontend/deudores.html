@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS - Deudores</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <nav class="bg-emerald-700 text-white shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <span id="nav-saludo" class="font-bold text-xl">Buenos días</span>
+      <div class="flex gap-4 items-center">
+        <a href="index.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Dashboard</a>
+        <a href="ventas.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Ventas</a>
+        <a href="inventario.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Inventario</a>
+        <a href="deudores.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Deudores</a>
+        <a href="pagos.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Pagos</a>
+        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 px-3 py-1 rounded text-sm opacity-90">Cerrar sesión</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-slate-800 mb-6">Deudores</h1>
+
+    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 text-slate-600 text-sm">
+            <tr>
+              <th class="px-6 py-3 font-medium">Nombre</th>
+              <th class="px-6 py-3 font-medium">Total deuda</th>
+              <th class="px-6 py-3 font-medium">Última compra</th>
+              <th class="px-6 py-3 font-medium">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-deudores" class="divide-y divide-slate-100">
+            <tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="sin-deudores" class="hidden px-6 py-8 text-center text-slate-500">
+        No hay deudores. Se crean automáticamente al hacer una venta fiada.
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal editar deudor -->
+  <div id="modal-deudor" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+      <h2 class="text-lg font-semibold text-slate-800 mb-4">Editar deudor</h2>
+      <form id="form-deudor">
+        <input type="hidden" name="id">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+            <input type="text" name="nombre" required class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-medium">Guardar</button>
+          <button type="button" id="btn-cerrar-modal" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (function () {
+      if (!requireAuth()) return;
+      document.getElementById('nav-saludo').textContent = getSaludo();
+      document.getElementById('btn-cerrar-sesion').onclick = function (e) { e.preventDefault(); cerrarSesion(); };
+      const tabla = document.getElementById('tabla-deudores');
+      const sinDeudores = document.getElementById('sin-deudores');
+      const modal = document.getElementById('modal-deudor');
+      const form = document.getElementById('form-deudor');
+      const btnCerrar = document.getElementById('btn-cerrar-modal');
+
+      function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+      function formatDate(iso) { if (!iso) return '-'; return new Date(iso).toLocaleDateString('es'); }
+
+      function load() {
+        api.deudores.list().then(deudores => {
+          if (deudores.length === 0) {
+            tabla.innerHTML = '';
+            sinDeudores.classList.remove('hidden');
+            return;
+          }
+          sinDeudores.classList.add('hidden');
+          tabla.innerHTML = deudores.map(d => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-6 py-3 font-medium text-slate-800">${escapeHtml(d.nombre)}</td>
+              <td class="px-6 py-3 font-semibold ${(d.total_deuda || 0) > 0 ? 'text-emerald-600' : 'text-slate-600'}">$${(d.total_deuda || 0).toFixed(2)}</td>
+              <td class="px-6 py-3 text-slate-600">${formatDate(d.fecha_ultima_compra)}</td>
+              <td class="px-6 py-3">
+                <a href="pagos.html?deudor=${encodeURIComponent(d.id)}" class="text-emerald-600 hover:underline font-medium mr-2">Registrar pago</a>
+                <button type="button" class="editar text-slate-600 hover:underline font-medium mr-2" data-id="${d.id}">Editar</button>
+                <button type="button" class="eliminar text-red-600 hover:underline font-medium" data-id="${d.id}">Eliminar</button>
+              </td>
+            </tr>
+          `).join('');
+          tabla.querySelectorAll('.editar').forEach(btn => {
+            btn.onclick = () => {
+              api.deudores.get(btn.dataset.id).then(d => {
+                form.id.value = d.id;
+                form.nombre.value = d.nombre;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+              });
+            };
+          });
+          tabla.querySelectorAll('.eliminar').forEach(btn => {
+            btn.onclick = () => {
+              Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'El deudor se eliminará. La deuda quedará sin registro.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  api.deudores.delete(btn.dataset.id)
+                    .then(() => {
+                      Swal.fire({ title: 'Eliminado', text: 'El deudor se ha eliminado correctamente.', icon: 'success', confirmButtonColor: '#059669' });
+                      load();
+                    })
+                    .catch((err) => Swal.fire({ title: 'Error', text: err.message, icon: 'error' }));
+                }
+              });
+            };
+          });
+        }).catch(e => {
+          tabla.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-red-600">' + escapeHtml(e.message) + '</td></tr>';
+          Swal.fire({ title: 'Error', text: e.message, icon: 'error' });
+        });
+      }
+
+      btnCerrar.onclick = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      };
+      modal.onclick = (e) => { if (e.target === modal) btnCerrar.click(); };
+
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const id = form.id.value;
+        try {
+          await api.deudores.update(id, { nombre: form.nombre.value.trim() });
+          btnCerrar.click();
+          load();
+          Swal.fire({ title: 'Actualizado', text: 'El deudor se ha actualizado correctamente.', icon: 'success', confirmButtonColor: '#059669' });
+        } catch (err) {
+          Swal.fire({ title: 'Error', text: err.message, icon: 'error' });
+        }
+      };
+
+      load();
+    })();
+  </script>
+</body>
+</html>

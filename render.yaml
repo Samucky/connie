@@ -1,0 +1,20 @@
+# Blueprint para desplegar POS Connie en Render
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: connie-pos
+    runtime: node
+    plan: free
+
+    # Raíz del backend (monorepo: backend + frontend)
+    rootDir: backend
+
+    buildCommand: npm install
+    startCommand: npm start
+
+    # Solo redesplegar cuando cambien archivos del proyecto (opcional)
+    # buildFilter:
+    #   paths:
+    #     - backend/**
+    #     - frontend/**
