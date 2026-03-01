@@ -9,16 +9,19 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
-  <nav class="bg-emerald-700 text-white shadow-lg">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-      <span id="nav-saludo" class="font-bold text-xl">Buenos días</span>
-      <div class="flex gap-4 items-center">
-        <a href="index.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Dashboard</a>
-        <a href="ventas.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Ventas</a>
-        <a href="inventario.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Inventario</a>
-        <a href="deudores.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Deudores</a>
-        <a href="pagos.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Pagos</a>
-        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 px-3 py-1 rounded text-sm opacity-90">Cerrar sesión</a>
+  <nav class="main-nav text-white">
+    <div class="max-w-6xl mx-auto px-4 py-3 nav-wrap">
+      <span id="nav-saludo" class="font-bold text-lg md:text-xl">Buenos días</span>
+      <button type="button" class="nav-toggle" aria-label="Abrir menú" id="btn-nav-toggle">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="nav-menu" id="nav-menu">
+        <a href="index.html" class="hover:bg-emerald-600">Dashboard</a>
+        <a href="ventas.html" class="hover:bg-emerald-600">Ventas</a>
+        <a href="inventario.html" class="hover:bg-emerald-600">Inventario</a>
+        <a href="deudores.html" class="hover:bg-emerald-600">Deudores</a>
+        <a href="pagos.html" class="hover:bg-emerald-600">Pagos</a>
+        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 text-sm opacity-90">Cerrar sesión</a>
       </div>
     </div>
   </nav>
@@ -66,11 +69,11 @@
         <span id="total-venta" class="text-2xl font-bold text-emerald-600">$0.00</span>
       </div>
 
-      <div class="flex gap-4">
-        <button type="submit" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium">
+      <div class="flex gap-4 form-actions flex-wrap">
+        <button type="submit" class="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 font-medium min-h-[44px] flex-1 min-w-[140px]">
           Registrar venta
         </button>
-        <a href="index.html" class="bg-slate-200 text-slate-700 px-6 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</a>
+        <a href="index.html" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-lg hover:bg-slate-300 font-medium min-h-[44px] flex items-center justify-center">Cancelar</a>
       </div>
     </form>
 
@@ -80,6 +83,12 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
+    document.getElementById('btn-nav-toggle')?.addEventListener('click', function() {
+      document.getElementById('nav-menu')?.classList.toggle('is-open');
+    });
+    document.querySelectorAll('#nav-menu a').forEach(function(a) {
+      a.addEventListener('click', function() { document.getElementById('nav-menu')?.classList.remove('is-open'); });
+    });
     (function () {
       if (!requireAuth()) return;
       document.getElementById('nav-saludo').textContent = getSaludo();

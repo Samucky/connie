@@ -9,16 +9,19 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
-  <nav class="bg-emerald-700 text-white shadow-lg">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-      <span id="nav-saludo" class="font-bold text-xl">Buenos días</span>
-      <div class="flex gap-4 items-center">
-        <a href="index.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Dashboard</a>
-        <a href="ventas.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Ventas</a>
-        <a href="inventario.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Inventario</a>
-        <a href="deudores.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Deudores</a>
-        <a href="pagos.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Pagos</a>
-        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 px-3 py-1 rounded text-sm opacity-90">Cerrar sesión</a>
+  <nav class="main-nav text-white">
+    <div class="max-w-6xl mx-auto px-4 py-3 nav-wrap">
+      <span id="nav-saludo" class="font-bold text-lg md:text-xl">Buenos días</span>
+      <button type="button" class="nav-toggle" aria-label="Abrir menú" id="btn-nav-toggle">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="nav-menu" id="nav-menu">
+        <a href="index.html" class="hover:bg-emerald-600">Dashboard</a>
+        <a href="ventas.html" class="hover:bg-emerald-600">Ventas</a>
+        <a href="inventario.html" class="hover:bg-emerald-600">Inventario</a>
+        <a href="deudores.html" class="hover:bg-emerald-600">Deudores</a>
+        <a href="pagos.html" class="hover:bg-emerald-600">Pagos</a>
+        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 text-sm opacity-90">Cerrar sesión</a>
       </div>
     </div>
   </nav>
@@ -27,8 +30,8 @@
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Deudores</h1>
 
     <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left">
+      <div class="table-wrap">
+        <table class="table-responsive w-full text-left">
           <thead class="bg-slate-50 text-slate-600 text-sm">
             <tr>
               <th class="px-6 py-3 font-medium">Nombre</th>
@@ -49,8 +52,8 @@
   </main>
 
   <!-- Modal editar deudor -->
-  <div id="modal-deudor" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+  <div id="modal-deudor" class="modal-overlay hidden">
+    <div class="modal-box p-6">
       <h2 class="text-lg font-semibold text-slate-800 mb-4">Editar deudor</h2>
       <form id="form-deudor">
         <input type="hidden" name="id">
@@ -60,9 +63,9 @@
             <input type="text" name="nombre" required class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500">
           </div>
         </div>
-        <div class="flex gap-3 mt-6">
-          <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-medium">Guardar</button>
-          <button type="button" id="btn-cerrar-modal" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</button>
+        <div class="flex gap-3 mt-6 form-actions">
+          <button type="submit" class="bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 font-medium min-h-[44px]">Guardar</button>
+          <button type="button" id="btn-cerrar-modal" class="bg-slate-200 text-slate-700 px-4 py-3 rounded-lg hover:bg-slate-300 font-medium min-h-[44px]">Cancelar</button>
         </div>
       </form>
     </div>
@@ -71,6 +74,12 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
+    document.getElementById('btn-nav-toggle')?.addEventListener('click', function() {
+      document.getElementById('nav-menu')?.classList.toggle('is-open');
+    });
+    document.querySelectorAll('#nav-menu a').forEach(function(a) {
+      a.addEventListener('click', function() { document.getElementById('nav-menu')?.classList.remove('is-open'); });
+    });
     (function () {
       if (!requireAuth()) return;
       document.getElementById('nav-saludo').textContent = getSaludo();
@@ -94,13 +103,13 @@
           sinDeudores.classList.add('hidden');
           tabla.innerHTML = deudores.map(d => `
             <tr class="hover:bg-slate-50">
-              <td class="px-6 py-3 font-medium text-slate-800">${escapeHtml(d.nombre)}</td>
-              <td class="px-6 py-3 font-semibold ${(d.total_deuda || 0) > 0 ? 'text-emerald-600' : 'text-slate-600'}">$${(d.total_deuda || 0).toFixed(2)}</td>
-              <td class="px-6 py-3 text-slate-600">${formatDate(d.fecha_ultima_compra)}</td>
-              <td class="px-6 py-3">
+              <td data-label="Nombre" class="px-6 py-3 font-medium text-slate-800">${escapeHtml(d.nombre)}</td>
+              <td data-label="Total deuda" class="px-6 py-3 font-semibold ${(d.total_deuda || 0) > 0 ? 'text-emerald-600' : 'text-slate-600'}">$${(d.total_deuda || 0).toFixed(2)}</td>
+              <td data-label="Última compra" class="px-6 py-3 text-slate-600">${formatDate(d.fecha_ultima_compra)}</td>
+              <td data-label="Acciones" class="px-6 py-3">
                 <a href="pagos.html?deudor=${encodeURIComponent(d.id)}" class="text-emerald-600 hover:underline font-medium mr-2">Registrar pago</a>
-                <button type="button" class="editar text-slate-600 hover:underline font-medium mr-2" data-id="${d.id}">Editar</button>
-                <button type="button" class="eliminar text-red-600 hover:underline font-medium" data-id="${d.id}">Eliminar</button>
+                <button type="button" class="editar text-slate-600 hover:underline font-medium mr-2 min-h-[44px]" data-id="${d.id}">Editar</button>
+                <button type="button" class="eliminar text-red-600 hover:underline font-medium min-h-[44px]" data-id="${d.id}">Eliminar</button>
               </td>
             </tr>
           `).join('');
@@ -110,7 +119,7 @@
                 form.id.value = d.id;
                 form.nombre.value = d.nombre;
                 modal.classList.remove('hidden');
-                modal.classList.add('flex');
+                modal.style.display = 'flex';
               });
             };
           });
@@ -145,7 +154,7 @@
 
       btnCerrar.onclick = () => {
         modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        modal.style.display = '';
       };
       modal.onclick = (e) => { if (e.target === modal) btnCerrar.click(); };
 

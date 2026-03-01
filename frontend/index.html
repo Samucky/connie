@@ -8,16 +8,19 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
-  <nav class="bg-emerald-700 text-white shadow-lg">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-      <span id="nav-saludo" class="font-bold text-xl">Buenos días</span>
-      <div class="flex gap-4 items-center">
-        <a href="index.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Dashboard</a>
-        <a href="ventas.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Ventas</a>
-        <a href="inventario.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Inventario</a>
-        <a href="deudores.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Deudores</a>
-        <a href="pagos.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Pagos</a>
-        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 px-3 py-1 rounded text-sm opacity-90">Cerrar sesión</a>
+  <nav class="main-nav text-white">
+    <div class="max-w-6xl mx-auto px-4 py-3 nav-wrap">
+      <span id="nav-saludo" class="font-bold text-lg md:text-xl">Buenos días</span>
+      <button type="button" class="nav-toggle" aria-label="Abrir menú" id="btn-nav-toggle">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="nav-menu" id="nav-menu">
+        <a href="index.html" class="hover:bg-emerald-600">Dashboard</a>
+        <a href="ventas.html" class="hover:bg-emerald-600">Ventas</a>
+        <a href="inventario.html" class="hover:bg-emerald-600">Inventario</a>
+        <a href="deudores.html" class="hover:bg-emerald-600">Deudores</a>
+        <a href="pagos.html" class="hover:bg-emerald-600">Pagos</a>
+        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 text-sm opacity-90">Cerrar sesión</a>
       </div>
     </div>
   </nav>
@@ -25,22 +28,22 @@
   <main class="max-w-6xl mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-slate-800 mb-6">Dashboard</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <a href="ventas.html" class="bg-white rounded-xl shadow p-6 hover:shadow-md transition text-center border border-slate-200">
-        <span class="text-3xl">🛒</span>
-        <p class="font-semibold text-slate-700 mt-2">Registrar venta</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <a href="ventas.html" class="dashboard-card bg-white rounded-xl shadow hover:shadow-md transition text-center border border-slate-200">
+        <span class="text-3xl" aria-hidden="true">🛒</span>
+        <p class="font-semibold text-slate-700">Registrar venta</p>
       </a>
-      <a href="pagos.html" class="bg-white rounded-xl shadow p-6 hover:shadow-md transition text-center border border-slate-200">
-        <span class="text-3xl">💰</span>
-        <p class="font-semibold text-slate-700 mt-2">Registrar pago</p>
+      <a href="pagos.html" class="dashboard-card bg-white rounded-xl shadow hover:shadow-md transition text-center border border-slate-200">
+        <span class="text-3xl" aria-hidden="true">💰</span>
+        <p class="font-semibold text-slate-700">Registrar pago</p>
       </a>
-      <a href="inventario.html" class="bg-white rounded-xl shadow p-6 hover:shadow-md transition text-center border border-slate-200">
-        <span class="text-3xl">📦</span>
-        <p class="font-semibold text-slate-700 mt-2">Ver inventario</p>
+      <a href="inventario.html" class="dashboard-card bg-white rounded-xl shadow hover:shadow-md transition text-center border border-slate-200">
+        <span class="text-3xl" aria-hidden="true">📦</span>
+        <p class="font-semibold text-slate-700">Ver inventario</p>
       </a>
-      <a href="deudores.html" class="bg-white rounded-xl shadow p-6 hover:shadow-md transition text-center border border-slate-200">
-        <span class="text-3xl">👥</span>
-        <p class="font-semibold text-slate-700 mt-2">Ver deudores</p>
+      <a href="deudores.html" class="dashboard-card bg-white rounded-xl shadow hover:shadow-md transition text-center border border-slate-200">
+        <span class="text-3xl" aria-hidden="true">👥</span>
+        <p class="font-semibold text-slate-700">Ver deudores</p>
       </a>
     </div>
 
@@ -49,8 +52,8 @@
         <h2 class="text-lg font-semibold text-slate-800">Quienes deben dinero</h2>
         <p id="total-cobrar" class="text-emerald-600 font-bold text-xl">Total por cobrar: $0.00</p>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left">
+      <div class="table-wrap">
+        <table class="table-responsive w-full text-left">
           <thead class="bg-slate-50 text-slate-600 text-sm">
             <tr>
               <th class="px-6 py-3 font-medium">Nombre</th>
@@ -73,6 +76,12 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
+    document.getElementById('btn-nav-toggle')?.addEventListener('click', function() {
+      document.getElementById('nav-menu')?.classList.toggle('is-open');
+    });
+    document.querySelectorAll('#nav-menu a').forEach(function(a) {
+      a.addEventListener('click', function() { document.getElementById('nav-menu')?.classList.remove('is-open'); });
+    });
     (async function () {
       if (!requireAuth()) return;
       document.getElementById('nav-saludo').textContent = getSaludo();
@@ -93,10 +102,10 @@
         sinDeudores.classList.add('hidden');
         tbody.innerHTML = conDeuda.map(d => `
           <tr class="hover:bg-slate-50">
-            <td class="px-6 py-3 font-medium text-slate-800">${escapeHtml(d.nombre)}</td>
-            <td class="px-6 py-3 text-emerald-600 font-semibold">$${(d.total_deuda || 0).toFixed(2)}</td>
-            <td class="px-6 py-3 text-slate-600">${formatDate(d.fecha_ultima_compra)}</td>
-            <td class="px-6 py-3">
+            <td data-label="Nombre" class="px-6 py-3 font-medium text-slate-800">${escapeHtml(d.nombre)}</td>
+            <td data-label="Total que debe" class="px-6 py-3 text-emerald-600 font-semibold">$${(d.total_deuda || 0).toFixed(2)}</td>
+            <td data-label="Última compra" class="px-6 py-3 text-slate-600">${formatDate(d.fecha_ultima_compra)}</td>
+            <td data-label="Acciones" class="px-6 py-3">
               <a href="pagos.html?deudor=${encodeURIComponent(d.id)}" class="text-emerald-600 hover:underline font-medium">Registrar pago</a>
             </td>
           </tr>

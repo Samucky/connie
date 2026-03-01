@@ -9,16 +9,19 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
-  <nav class="bg-emerald-700 text-white shadow-lg">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-      <span id="nav-saludo" class="font-bold text-xl">Buenos días</span>
-      <div class="flex gap-4 items-center">
-        <a href="index.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Dashboard</a>
-        <a href="ventas.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Ventas</a>
-        <a href="inventario.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Inventario</a>
-        <a href="deudores.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Deudores</a>
-        <a href="pagos.html" class="hover:bg-emerald-600 px-3 py-1 rounded">Pagos</a>
-        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 px-3 py-1 rounded text-sm opacity-90">Cerrar sesión</a>
+  <nav class="main-nav text-white">
+    <div class="max-w-6xl mx-auto px-4 py-3 nav-wrap">
+      <span id="nav-saludo" class="font-bold text-lg md:text-xl">Buenos días</span>
+      <button type="button" class="nav-toggle" aria-label="Abrir menú" id="btn-nav-toggle">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="nav-menu" id="nav-menu">
+        <a href="index.html" class="hover:bg-emerald-600">Dashboard</a>
+        <a href="ventas.html" class="hover:bg-emerald-600">Ventas</a>
+        <a href="inventario.html" class="hover:bg-emerald-600">Inventario</a>
+        <a href="deudores.html" class="hover:bg-emerald-600">Deudores</a>
+        <a href="pagos.html" class="hover:bg-emerald-600">Pagos</a>
+        <a href="#" id="btn-cerrar-sesion" class="hover:bg-emerald-600 text-sm opacity-90">Cerrar sesión</a>
       </div>
     </div>
   </nav>
@@ -47,20 +50,20 @@
           <option value="Transferencia">Transferencia</option>
         </select>
       </div>
-      <div class="flex gap-4">
-        <button type="submit" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium">
+      <div class="flex gap-4 form-actions flex-wrap">
+        <button type="submit" class="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 font-medium min-h-[44px] flex-1 min-w-[140px]">
           Registrar pago
         </button>
-        <a href="index.html" class="bg-slate-200 text-slate-700 px-6 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</a>
+        <a href="index.html" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-lg hover:bg-slate-300 font-medium min-h-[44px] flex items-center justify-center">Cancelar</a>
       </div>
     </form>
 
     <div id="mensaje" class="mt-4 hidden rounded-lg p-4"></div>
 
-    <div class="mt-8 bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
-      <h2 class="px-6 py-4 border-b border-slate-200 text-lg font-semibold text-slate-800">Historial de pagos</h2>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left">
+    <div class="mt-6 sm:mt-8 bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <h2 class="px-4 sm:px-6 py-4 border-b border-slate-200 text-lg font-semibold text-slate-800">Historial de pagos</h2>
+      <div class="table-wrap">
+        <table class="table-responsive w-full text-left">
           <thead class="bg-slate-50 text-slate-600 text-sm">
             <tr>
               <th class="px-6 py-3 font-medium">Deudor</th>
@@ -80,6 +83,12 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
+    document.getElementById('btn-nav-toggle')?.addEventListener('click', function() {
+      document.getElementById('nav-menu')?.classList.toggle('is-open');
+    });
+    document.querySelectorAll('#nav-menu a').forEach(function(a) {
+      a.addEventListener('click', function() { document.getElementById('nav-menu')?.classList.remove('is-open'); });
+    });
     (function () {
       if (!requireAuth()) return;
       document.getElementById('nav-saludo').textContent = getSaludo();
@@ -136,10 +145,10 @@
           }
           tablaPagos.innerHTML = pagos.slice().reverse().map(p => `
             <tr class="hover:bg-slate-50">
-              <td class="px-6 py-3 font-medium text-slate-800">${escapeHtml(p.nombre_deudor || '-')}</td>
-              <td class="px-6 py-3 text-emerald-600 font-semibold">$${(p.monto_pagado || 0).toFixed(2)}</td>
-              <td class="px-6 py-3 text-slate-600">${formatDate(p.fecha)}</td>
-              <td class="px-6 py-3 text-slate-600">${escapeHtml(p.metodo_pago || '-')}</td>
+              <td data-label="Deudor" class="px-6 py-3 font-medium text-slate-800">${escapeHtml(p.nombre_deudor || '-')}</td>
+              <td data-label="Monto" class="px-6 py-3 text-emerald-600 font-semibold">$${(p.monto_pagado || 0).toFixed(2)}</td>
+              <td data-label="Fecha" class="px-6 py-3 text-slate-600">${formatDate(p.fecha)}</td>
+              <td data-label="Método" class="px-6 py-3 text-slate-600">${escapeHtml(p.metodo_pago || '-')}</td>
             </tr>
           `).join('');
         }).catch(e => {
